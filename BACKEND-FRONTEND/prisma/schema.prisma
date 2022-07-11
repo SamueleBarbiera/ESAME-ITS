@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("NEXT_DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+  Rfids         Rfids?
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Rfids {
+  rfid_id    String   @id @default(cuid())
+  codice     String
+  stato      Boolean
+  user       User?    @relation(fields: [user_id_fk], references: [id])
+  user_id_fk String?  @unique
+  createdAt  DateTime @default(now()) @map(name: "created_at")
+  updatedAt  DateTime @updatedAt @map(name: "updated_at")
+
+  @@map(name: "rfids")
+}
+
+model Durata {
+  durata_id            String    @id @default(cuid())
+  tempo                Float
+  costo_finale         Float
+  pagamento_effettuato Boolean
+  parcheggi            Parcheggi @relation(fields: [parcheggi_id_fk], references: [parcheggi_id])
+  parcheggi_id_fk      String
+  createdAt            DateTime  @default(now()) @map(name: "created_at")
+  updatedAt            DateTime  @updatedAt @map(name: "updated_at")
+
+  @@map(name: "durata")
+}
+
+model Parcheggi {
+  parcheggi_id     String   @id @default(cuid())
+  piano            Int
+  posto            Int
+  parcheggio_stato Boolean
+  createdAt        DateTime @default(now()) @map(name: "created_at")
+  updatedAt        DateTime @updatedAt @map(name: "updated_at")
+  Durata           Durata[]
+
+  @@map(name: "parcheggi")
+}
