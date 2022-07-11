@@ -140,7 +140,7 @@ export default function Home({ posti_liberi }: any) {
 import { GetStaticProps } from 'next'
 
 export const getStaticProps: GetStaticProps = async () => {
-    const resPosti = await fetch(`${process.env.NEXT_URL}/api/data/parcheggi/liberi`)
+    const resPosti = await fetch('https://witty-field-0eb8a8d03.1.azurestaticapps.net/api/data/parcheggi/liberi')
     const posti_liberi = await resPosti.json()
     console.log('🚀 - file: index.tsx - line 156 - constgetStaticProps:GetStaticProps= - posti_liberi', posti_liberi)
 

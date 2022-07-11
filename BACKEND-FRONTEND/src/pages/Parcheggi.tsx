@@ -127,7 +127,7 @@ export default Parcheggi
 import { GetStaticProps } from 'next'
 
 export const getStaticProps: GetStaticProps = async () => {
-    const res = await fetch(`${process.env.NEXT_URL}/api/data/parcheggi`)
+    const res = await fetch('https://witty-field-0eb8a8d03.1.azurestaticapps.net/api/data/parcheggi')
     const data = await res.json()
 
     return {
