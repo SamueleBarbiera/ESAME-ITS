@@ -1,13 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import Head from 'next/head'
 import Header from '../components/layout/Header'
-import Footer from '../components/layout/Footer'
-import { fetcher } from '../lib/fetcher'
-import useSWR from 'swr'
+import Footer from '../components/layout/Footer
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { useShoppingCart } from 'use-shopping-cart'
-import { AiOutlineLoading } from 'react-icons/ai'
 import { MdCreditScore, MdAccessTime } from 'react-icons/md'
 import { FaGooglePay, FaApplePay } from 'react-icons/fa'
 import { GrPaypal } from 'react-icons/gr'
@@ -18,14 +13,7 @@ import { TbToiletPaper } from 'react-icons/tb'
 
 export default function Home({ posti_liberi }: any) {
     console.log('🚀 - file: index.tsx - line 20 - Home - posti_liberi', posti_liberi)
-
-    const Router = useRouter()
-    const { clearCart } = useShoppingCart()
     const url: any = '/cart/Checkout'
-
-    useEffect(() => {
-        clearCart()
-    }, [])
 
  
         return (

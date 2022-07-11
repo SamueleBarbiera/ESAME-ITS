@@ -25,7 +25,6 @@
     },
     "dependencies": {
         "@headlessui/react": "^1.6.5",
-        "@next-auth/prisma-adapter": "^1.0.3",
         "@prisma/client": "^4.0.0",
         "next": "12.1.6",
         "next-validations": "^0.2.0",

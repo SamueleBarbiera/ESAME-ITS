@@ -2,15 +2,12 @@
 import Footer from '../components/layout/Footer'
 import Header from '../components/layout/Header'
 import Head from 'next/head'
-import { AiTwotoneCar } from 'react-icons/ai'
 import React, { useEffect, useState } from 'react'
 import { Switch } from '@headlessui/react'
 import { fetcher } from '../lib/fetcher'
 import { ExclamationCircleIcon } from '@heroicons/react/solid'
 import useSWR from 'swr'
 import { useRouter } from 'next/router'
-import { useShoppingCart } from 'use-shopping-cart'
-import { GetServerSideProps, InferGetServerSidePropsType } from 'next'
 import { MdLocalParking } from 'react-icons/md'
 
 function classNames(...classes: any) {
@@ -18,24 +15,14 @@ function classNames(...classes: any) {
 }
 
 const Parcheggi: React.FC<any> = (props: any) => {
-    const Router = useRouter()
-    const { clearCart } = useShoppingCart()
     const [piano, setPiano] = useState(false)
 
-    useEffect(() => {
-        clearCart()
-    }, [])
+
     const { data: parcheggi, error: errore } = useSWR('/api/data/parcheggi', fetcher, {
         refreshInterval: 1000,
         fallbackData: props.data,
     })
 
-    const url: any = '/cart/Checkout'
-    const { data, error } = useSWR('/api/data/durata/checkLastRecord', fetcher, {
-        refreshInterval: 1000,
-    })
-
-    if (data == null || data == 'undefined' || error || !data) {
         return (
             <>
                 <Head>
@@ -134,11 +121,7 @@ const Parcheggi: React.FC<any> = (props: any) => {
                 <Footer />
             </>
         )
-    } else {
-        const costo_fin: any = JSON.parse(JSON.stringify(data.avviaPagamento))
-        Router.push({ pathname: url, query: { costo_finale: JSON.stringify(costo_fin) } }, url)
-        return null
-    }
+   
 }
 export default Parcheggi
 import { GetStaticProps } from 'next'
