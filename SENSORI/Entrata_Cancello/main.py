@@ -1,6 +1,3 @@
-###                                                             LIBRERIE
-
-
 #Lettura con raspberry
 import RPi.GPIO as GPIO          #Pin generali
 from mfrc522 import MFRC522      #Pin lettore RFID
@@ -14,12 +11,8 @@ import requests.exceptions
 from datetime import datetime
 
 
-###                                                             VARIABILI
-
-
-#Url base del server raspberry
-URL = "http://172.16.5.193:5000/"
-
+#VARIABILI
+URL = "http://172.16.5.193:5000/" #Url base del server raspberry
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
@@ -70,8 +63,6 @@ GPIO.setup(BUTTONUSCITA,GPIO.IN,pull_up_down=GPIO.PUD_DOWN)
 def NewEntryJSON(rfid):
     if rfid == "":
         return {"entrata":"button","codice":rfid}
-    else:
-        return {"entrata":"rfid","codice":rfid}
 
 # Crea un oggetto json da inviare tramite richiesta Api Rest Post per registrare una nuova uscita
 def NewExitJSON(exit, code):
@@ -248,143 +239,126 @@ GPIO.add_event_detect(BUTTONUSCITA,GPIO.RISING,callback=buttonUscita_callback)
 
 #ciclo infinito
 while True:
-    # ogni ciclo mi salvo la data e l'orario attuale
-    timeNow = datetime.now()
+    # imposto la variabile di controllo "chiuso" a False, spengo il LED rosso
+    # e ottengo il numero di posti parcheggio liberi totali
+    chiuso = False
+    if GPIO.input(RED) == 1:
+        GPIO.output(RED,0)
+    parcheggiLiberi = getParcheggiLiberi()
 
-    # se l'orario attuale risulta compreso dalle 00:00 alle 06:00 il parcheggio risulta chiuso, imposto il LED rosso 
-    # e ricomincia un nuovo ciclo
-    if timeNow.hour >= 0 and timeNow.hour < 6: 
-        if GPIO.input(RED) == 0:
+    # se durante l'operazione per ottenere il numero di posti parcheggio liberi totali si verifica un errore
+    # ottengo un codice -1 come risposta, dunque imposto il LED giallo e ricomincia un nuovo ciclo
+    if parcheggiLiberi == -1:
+        if GPIO.input(YELLOW) == 0:
             lcd.clear()
             lcd.cursor_pos=(0,0)
-            lcd.write_string("PARCHEGGIO")
+            lcd.write_string("SERVER NON")
             lcd.cursor_pos=(1,0)
-            lcd.write_string("CHIUSO")
-            GPIO.output(RED,1)
-        chiuso = True # booleano di controllo che indica il parcheggio chiuso
+            lcd.write_string("RAGGIUNGIBILE")
+            GPIO.output(YELLOW,1)
     else:
-        # se invece l'orario attuale non è compreso nell'intervallo precedente 
-        # imposto la variabile di controllo "chiuso" a False, spengo il LED rosso
-        # (in caso nel precedente ciclo il parcheggio risultasse chiuso) 
-        # e ottengo il numero di posti parcheggio liberi totali
-        chiuso = False
-        if GPIO.input(RED) == 1:
-            GPIO.output(RED,0)
-        parcheggiLiberi = getParcheggiLiberi()
+        # se invece l'operazione per ottenere il numero di posti parcheggio liberi totali va a buon fine
+        # spengo il LED giallo in caso di errori precedenti
+        if GPIO.input(YELLOW) == 1:
+            GPIO.output(YELLOW,0)
 
-        # se durante l'operazione per ottenere il numero di posti parcheggio liberi totali si verifica un errore
-        # ottengo un codice -1 come risposta, dunque imposto il LED giallo e ricomincia un nuovo ciclo
-        if parcheggiLiberi == -1:
-            if GPIO.input(YELLOW) == 0:
-                lcd.clear()
-                lcd.cursor_pos=(0,0)
-                lcd.write_string("SERVER NON")
-                lcd.cursor_pos=(1,0)
-                lcd.write_string("RAGGIUNGIBILE")
-                GPIO.output(YELLOW,1)
-        else:
-            # se invece l'operazione per ottenere il numero di posti parcheggio liberi totali va a buon fine
-            # spengo il LED giallo in caso di errori precedenti
-            if GPIO.input(YELLOW) == 1:
-                GPIO.output(YELLOW,0)
-
-            # poi controllo se il numero di posti parcheggio liberi totali equivale a 0 vuol dire
-            # che il parcheggio risulta pieno e imposto il LED rosso
-            if parcheggiLiberi == 0:
-                if GPIO.input(RED) == 0:
-                    lcd.clear()
-                    lcd.cursor_pos=(0,0)
-                    lcd.write_string("PARCHEGGIO")
-                    lcd.cursor_pos=(1,0)
-                    lcd.write_string("PIENO")
-                    GPIO.output(RED,1)
-                pieno = True # booleano di controllo che indica il parcheggio chiuso
-            else:
-                # altrimenti il parcheggio risulta disponibile, quindi imposto la variabile di controllo "pieno" a False
-                # e spengo il LED rosso(in caso nel precedente ciclo il parcheggio risultasse pieno) 
-                pieno = False
-                if GPIO.input(RED) == 1:
-                    GPIO.output(RED,0)
-            
-            # sfruttando le variabili di controllo imposto il display LCD rendendo il parcheggio disponibile
-            if pieno == False and pulsanteEntrata == False and pulsanteUscita == False:
+        # poi controllo se il numero di posti parcheggio liberi totali equivale a 0 vuol dire
+        # che il parcheggio risulta pieno e imposto il LED rosso
+        if parcheggiLiberi == 0:
+            if GPIO.input(RED) == 0:
                 lcd.clear()
                 lcd.cursor_pos=(0,0)
                 lcd.write_string("PARCHEGGIO")
                 lcd.cursor_pos=(1,0)
-                lcd.write_string("DISPONIBILE")
-
-            # a questo punto controlla se una scheda o badge RFID è stato passato  
-            (status,TagType) = rc522.MFRC522_Request(rc522.PICC_REQIDL)
-            
-            # successivamente ottiene il suo uid(codice RFID)
-            # la funzione Anticoll permette di evitare collisioni in caso più RFID vengano passati sul lettore
-            (status,uid) = rc522.MFRC522_Anticoll() 
+                lcd.write_string("PIENO")
+                GPIO.output(RED,1)
+            pieno = True # booleano di controllo che indica il parcheggio chiuso
+        else:
+            # altrimenti il parcheggio risulta disponibile, quindi imposto la variabile di controllo "pieno" a False
+            # e spengo il LED rosso(in caso nel precedente ciclo il parcheggio risultasse pieno) 
+            pieno = False
+            if GPIO.input(RED) == 1:
+                GPIO.output(RED,0)
         
-            # se l'uid è stato ottenuto continuo il ciclo, altrimenti(uid non trovato o RFID non letto) ricomincia un nuovo ciclo
-            if status == rc522.MI_OK:
-                # converto l'uid in stringa
-                uidString = ""
-                for byteUID in uid:
-                    uidString += str(byteUID)
+        # sfruttando le variabili di controllo imposto il display LCD rendendo il parcheggio disponibile
+        if pieno == False and pulsanteEntrata == False and pulsanteUscita == False:
+            lcd.clear()
+            lcd.cursor_pos=(0,0)
+            lcd.write_string("PARCHEGGIO")
+            lcd.cursor_pos=(1,0)
+            lcd.write_string("DISPONIBILE")
 
-                print("RFID Ricevuto: "+uidString)
+        # a questo punto controlla se una scheda o badge RFID è stato passato  
+        (status,TagType) = rc522.MFRC522_Request(rc522.PICC_REQIDL)
+        
+        # successivamente ottiene il suo uid(codice RFID)
+        # la funzione Anticoll permette di evitare collisioni in caso più RFID vengano passati sul lettore
+        (status,uid) = rc522.MFRC522_Anticoll() 
+    
+        # se l'uid è stato ottenuto continuo il ciclo, altrimenti(uid non trovato o RFID non letto) ricomincia un nuovo ciclo
+        if status == rc522.MI_OK:
+            # converto l'uid in stringa
+            uidString = ""
+            for byteUID in uid:
+                uidString += str(byteUID)
 
-                # se l'uid ottenuto risulta presente nella lista "rfids"(quindi un uid già entrato) 
-                # e se non sono in esecuzione altre operazioni
-                if uidString in rfids and rfidEntrata == False and pulsanteEntrata == False and pulsanteUscita==False:
-                    rfidUscita = True # booleano di controllo che imposta l'operazione di uscita tramite RFID attiva
-                    jsonObjectUscita = NewExitJSON("rfid",uidString)
+            print("RFID Ricevuto: "+uidString)
 
-                    # chiamata Rest Api Post di check-out al server
-                    try:
-                        responseUscita = r.post(url=URL+"check-out", json=jsonObjectUscita, timeout=5)
-                        responseUscita.raise_for_status()
-                    except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-                        # in caso di errore di connessione al server o di timeout della richiesta
-                        lcd.clear()
-                        lcd.cursor_pos=(0,0)
-                        lcd.write_string("SERVER NON")
-                        lcd.cursor_pos=(1,0)
-                        lcd.write_string("RAGGIUNGIBILE")
-                        allarmeGenerico()
-                    except requests.exceptions.HTTPError :
-                        # in caso di errore interno del Server
-                        print("Errore Server")
-                        lcd.clear()
-                        lcd.cursor_pos=(0,0)
-                        lcd.write_string("ERRORE")
-                        lcd.cursor_pos=(1,0)
-                        lcd.write_string("RICEZIONE DATI")
-                        allarmeGenerico()
-                    else:
-                        # se va tutto bene visualizzo l'importo da pagare
-                        # e che il pagamento è andato a buon fine
-                        responseUscitaJson = responseUscita.json()
-                        lcd.clear()
-                        lcd.cursor_pos=(0,0)
-                        lcd.write_string("IMPORTO")
-                        lcd.cursor_pos=(1,0)
-                        lcd.write_string(responseUscitaJson["costo"])
-                        time.sleep(3)    
-                        lcd.cursor_pos=(0,0)
-                        lcd.write_string("PAGAMENTO")
-                        lcd.cursor_pos=(1,0)
-                        lcd.write_string("EFFETTUATO")
-                        operazioneConclusa()
-                        lcd.clear()
-                        lcd.cursor_pos=(0,0)
-                        lcd.write_string("ARRIVEDERCI")
-                        lcd.cursor_pos=(1,0)
-                        lcd.write_string("E GRAZIE")
-                        time.sleep(3)
-                        rfids.remove(uidString)
-                        responseUscita.close()
-                    rfidUscita = False
-                
-                # altrimenti(quindi l'RFID è nuovo) se il parcheggio risulta disponibile
-                # e se non sono in esecuzione altre operazioni
-                elif pieno == False and rfidUscita == False and pulsanteEntrata == False and pulsanteUscita==False:
+            # se l'uid ottenuto risulta presente nella lista "rfids"(quindi un uid già entrato) 
+            # e se non sono in esecuzione altre operazioni
+            if uidString in rfids and rfidEntrata == False and pulsanteEntrata == False and pulsanteUscita==False:
+                rfidUscita = True # booleano di controllo che imposta l'operazione di uscita tramite RFID attiva
+                jsonObjectUscita = NewExitJSON("rfid",uidString)
+
+                # chiamata Rest Api Post di check-out al server
+                try:
+                    responseUscita = r.post(url=URL+"check-out", json=jsonObjectUscita, timeout=5)
+                    responseUscita.raise_for_status()
+                except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                    # in caso di errore di connessione al server o di timeout della richiesta
+                    lcd.clear()
+                    lcd.cursor_pos=(0,0)
+                    lcd.write_string("SERVER NON")
+                    lcd.cursor_pos=(1,0)
+                    lcd.write_string("RAGGIUNGIBILE")
+                    allarmeGenerico()
+                except requests.exceptions.HTTPError :
+                    # in caso di errore interno del Server
+                    print("Errore Server")
+                    lcd.clear()
+                    lcd.cursor_pos=(0,0)
+                    lcd.write_string("ERRORE")
+                    lcd.cursor_pos=(1,0)
+                    lcd.write_string("RICEZIONE DATI")
+                    allarmeGenerico()
+                else:
+                    # se va tutto bene visualizzo l'importo da pagare
+                    # e che il pagamento è andato a buon fine
+                    responseUscitaJson = responseUscita.json()
+                    lcd.clear()
+                    lcd.cursor_pos=(0,0)
+                    lcd.write_string("IMPORTO")
+                    lcd.cursor_pos=(1,0)
+                    lcd.write_string(responseUscitaJson["costo"])
+                    time.sleep(3)    
+                    lcd.cursor_pos=(0,0)
+                    lcd.write_string("PAGAMENTO")
+                    lcd.cursor_pos=(1,0)
+                    lcd.write_string("EFFETTUATO")
+                    operazioneConclusa()
+                    lcd.clear()
+                    lcd.cursor_pos=(0,0)
+                    lcd.write_string("ARRIVEDERCI")
+                    lcd.cursor_pos=(1,0)
+                    lcd.write_string("E GRAZIE")
+                    time.sleep(3)
+                    rfids.remove(uidString)
+                    responseUscita.close()
+                rfidUscita = False
+            
+            # altrimenti(quindi l'RFID è nuovo) se il parcheggio risulta disponibile
+            # e se non sono in esecuzione altre operazioni
+            elif pieno == False and rfidUscita == False and pulsanteEntrata == False and pulsanteUscita==False:
                     rfidEntrata = True # booleano di controllo che imposta l'operazione di entrata tramite RFID attiva
 
                     # chiamata Rest Api Post di check-out al server

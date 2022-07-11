@@ -25,7 +25,7 @@ export default function Footer() {
                 <div className="h-4 items-center py-10 md:flex md:justify-between">
                     <Socials />
                     <div className="hidden md:flex md:text-left">
-                        <p className="font-medium text-indigo-900">BUGSEATING 2022 💥</p>
+                        <p className="font-medium text-indigo-900">ParkingLot - VI 2022</p>
                     </div>
                 </div>
             </footer>

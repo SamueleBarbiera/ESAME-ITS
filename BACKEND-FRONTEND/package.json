@@ -14,7 +14,7 @@
         "lint-fix": "npm lint --fix",
         "build:1-generate": "prisma generate",
         "_build:2-migrate": "prisma migrate deploy",
-        "build:3-next": "cross-env NODE_ENV=production next build",
+        "build:3-next": "cross-env NODE_ENV=production next build && next export",
         "build:4-server": "tsc --project tsconfig.server.json",
         "dev:1-db-gen": "prisma generate",
         "dev:2-db-push": "prisma db push",

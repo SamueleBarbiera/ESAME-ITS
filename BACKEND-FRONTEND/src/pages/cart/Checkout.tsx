@@ -171,7 +171,9 @@ const Checkout: React.FC<any> = () => {
     )
 }
 export default Checkout
-// export const getServerSideProps: GetServerSideProps = async (ctx: any) => {
+// import { GetStaticProps } from 'next'
+
+// export const getStaticProps: GetStaticProps = async (ctx: any) => {
 //     const session = await getSession(ctx)
 
 //     if (!session!.user && session!.user == {} && (session as any).user.email === '') {

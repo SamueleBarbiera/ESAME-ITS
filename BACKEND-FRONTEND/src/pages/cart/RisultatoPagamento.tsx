@@ -11,7 +11,7 @@ import Head from 'next/head'
 import { authOptions } from '../api/auth/[...nextauth]'
 import { unstable_getServerSession } from 'next-auth/next'
 
-export default function RisultatoPagamento () {
+export default function RisultatoPagamento() {
     const router = useRouter()
     const { clearCart } = useShoppingCart()
     const { data, error } = useSWR(
@@ -67,8 +67,9 @@ export default function RisultatoPagamento () {
     )
 }
 
+import { GetStaticProps } from 'next'
 
-export const getServerSideProps = async (ctx: any) => {
+export const getStaticProps: GetStaticProps = async (ctx: any) => {
     const session = await unstable_getServerSession(ctx.req, ctx.res, authOptions)
 
     if (!session) {

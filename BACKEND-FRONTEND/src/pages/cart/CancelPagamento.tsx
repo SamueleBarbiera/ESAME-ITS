@@ -32,7 +32,9 @@ export default function CancelPagamento() {
     )
 }
 
-export const getServerSideProps = async (ctx: any) => {
+import { GetStaticProps } from 'next'
+
+export const getStaticProps: GetStaticProps = async (ctx: any) => {
     const session = await unstable_getServerSession(ctx.req, ctx.res, authOptions)
 
     if (!session!.user && session!.user == {} && (session as any).user.email === '') {

@@ -17,7 +17,7 @@ function classNames(...classes: any) {
     return classes.filter(Boolean).join(' ')
 }
 
-const Parcheggi: React.FC<any> = (props: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const Parcheggi: React.FC<any> = (props: any) => {
     const Router = useRouter()
     const { clearCart } = useShoppingCart()
     const [piano, setPiano] = useState(false)
@@ -89,7 +89,9 @@ const Parcheggi: React.FC<any> = (props: InferGetServerSidePropsType<typeof getS
                                             <p className="relative left-6 top-7 text-indigo-50">{p.posto}</p>
                                             <MdLocalParking
                                                 className={classNames(
-                                                    p.parcheggio_stato == false ? 'bg-red-900 ' : 'bg-green-900 text-white',
+                                                    p.parcheggio_stato == false
+                                                        ? 'bg-red-900 '
+                                                        : 'bg-green-900 text-white',
                                                     ' transiction mx-4 h-20 w-20 rounded-md border p-5 text-gray-900 shadow-xl duration-200 ease-in-out hover:motion-safe:animate-pulse'
                                                 )}
                                             />
@@ -108,7 +110,9 @@ const Parcheggi: React.FC<any> = (props: InferGetServerSidePropsType<typeof getS
                                             <p className="relative left-6 top-7 text-indigo-50">{p.posto}</p>
                                             <MdLocalParking
                                                 className={classNames(
-                                                    p.parcheggio_stato == false ? 'bg-red-900 ' : 'bg-green-900  text-white',
+                                                    p.parcheggio_stato == false
+                                                        ? 'bg-red-900 '
+                                                        : 'bg-green-900  text-white',
                                                     ' transiction mx-4 h-20 w-20 rounded-md border p-5 text-gray-900 shadow-xl duration-200 ease-in-out hover:motion-safe:animate-pulse'
                                                 )}
                                             />
@@ -137,7 +141,9 @@ const Parcheggi: React.FC<any> = (props: InferGetServerSidePropsType<typeof getS
     }
 }
 export default Parcheggi
-export const getServerSideProps: GetServerSideProps = async () => {
+import { GetStaticProps } from 'next'
+
+export const getStaticProps: GetStaticProps = async () => {
     const res = await fetch(`${process.env.NEXT_URL}/api/data/parcheggi`)
     const data = await res.json()
 
