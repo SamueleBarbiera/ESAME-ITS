@@ -163,4 +163,55 @@ app.post('/durata/create', async (req: any, res: any) => {
     }
 })
 
+app.post(`/btn/checkin`, async (req: any, res: any) => {
+    const {piano, posto} = req.body
+
+    try {
+        if (req.method === 'POST') {
+            const findParcheggio = await prisma.parcheggi.findFirst({
+                where: {
+                    piano: piano,
+                    posto: posto,
+                    parcheggio_stato: true,
+                },
+            })
+            const trovaPagamento = await prisma.durata.findFirst({
+                where: {
+                    parcheggi_id_fk: findParcheggio?.parcheggi_id,
+                },
+            })
+            const avviPagamento = await prisma.durata.update({
+                where: {
+                    durata_id: trovaPagamento?.durata_id,
+                },
+                data: {pagamento_effettuato: true},
+            })
+            res.status(200).json({'Pagamento effettuato con il btn al checkout': avviPagamento})
+        } else {
+            res.status(400).json({
+                ERRORE: 'si accettano solo POST REQ',
+            })
+        }
+    } catch (err) {
+        let error = 'unkUnknown Error'
+        if (err instanceof Error) error = err.message
+        res.status(500).json({message: error})
+    }
+})
+
+app.get(`/btn/checkout`, async (req: any, res: any) => {
+    try {
+        if (req.method === 'GET') {
+            res.status(204).json('Check-in effettuato senza rfid')
+        } else {
+            res.status(400).json({
+                ERRORE: 'si accettano solo POST REQ',
+            })
+        }
+    } catch (err) {
+        let error = 'unkUnknown Error'
+        if (err instanceof Error) error = err.message
+        res.status(500).json({message: error})
+    }
+})
 app.listen(8080, () => console.log(`🚀 Server ready at: http://localhost:8080`))
